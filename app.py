@@ -14,7 +14,11 @@ from datetime import datetime
 import mediapipe as mp
 import logging
 from mtcnn import MTCNN
+import hashlib
 
+# Add these imports at the top of your file
+from urllib.parse import urlparse as url_parse
+from urllib.parse import urljoin
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -69,19 +73,116 @@ except Exception as e:
     logger.error(f"Failed to initialize HOG detector: {e}")
     hog = None
 
+# def save_image(image, folder, filename):
+#     """Save an image to a specified folder and return its path."""
+#     filepath = os.path.join(folder, filename)
+#     cv2.imwrite(filepath, image)
+#     return filepath
+
+# After writing files, ensure proper permissions
+# def save_image(image, folder, filename):
+#     """Save an image to a specified folder and return its path."""
+#     filepath = os.path.join(folder, filename)
+#     cv2.imwrite(filepath, image)
+    
+#     # Set proper permissions
+#     try:
+#         os.chmod(filepath, 0o644)  # Read by owner, group, others; write by owner
+#     except Exception as e:
+#         logger.warning(f"Could not set permissions on {filepath}: {e}")
+        
+#     return filepath
+# Fix the save_image function
 def save_image(image, folder, filename):
     """Save an image to a specified folder and return its path."""
-    filepath = os.path.join(folder, filename)
+    # Ensure consistent path format
+    filepath = os.path.join(folder, filename).replace('\\', '/')
     cv2.imwrite(filepath, image)
+    
+    # Set proper permissions
+    try:
+        os.chmod(filepath, 0o644)  # Read by owner, group, others; write by owner
+    except Exception as e:
+        logger.warning(f"Could not set permissions on {filepath}: {e}")
+        
     return filepath
 
+# def image_to_base64(image_path):
+#     # Replace with this implementation
+#     web_path = image_path.replace('static/', '').replace('\\', '/')
+#     return url_for('static', filename=web_path)
+# In your Flask app, modify the image_to_base64 function:
+# def image_to_base64(image_path):
+#     """Convert an image to a web-accessible URL"""
+#     # Make sure path is relative to static folder
+#     if image_path.startswith('static/'):
+#         path = image_path[7:]  # Remove 'static/' prefix
+#     else:
+#         path = image_path
+        
+#     # Replace backslashes with forward slashes for web URLs
+#     path = path.replace('\\', '/')
+    
+#     # Generate proper URL
+#     return url_for('static', filename=path)
+# def image_to_base64(image_path):
+#     """Convert an image to a web-accessible URL"""
+#     try:
+#         # Make sure path uses forward slashes
+#         image_path = image_path.replace('\\', '/')
+        
+#         # Create proper URL path from static folder
+#         if image_path.startswith('static/'):
+#             rel_path = image_path
+#         else:
+#             rel_path = f"static/{image_path}"
+            
+#         # Check if file exists
+#         if not os.path.exists(image_path):
+#             logger.error(f"Image file not found: {image_path}")
+#             return ""
+            
+    #     # Generate proper URL using url_for
+    #     static_path = rel_path.replace('static/', '', 1)
+    #     return url_for('static', filename=static_path)
+    # except Exception as e:
+    #     logger.error(f"Error in image_to_base64: {e}")
+    #     return ""
+# def image_to_base64(image_path):
+#     """Convert an image to a web-accessible URL"""
+#     try:
+#         # Clean path and remove 'static/' if present
+#         image_path = image_path.replace('\\', '/')
+#         rel_path = image_path
+#         if rel_path.startswith('static/'):
+#             rel_path = rel_path[7:]  # Remove 'static/' prefix
+            
+#         # Return URL
+#         return url_for('static', filename=rel_path)
+#     except Exception as e:
+#         logger.error(f"Error in image_to_base64: {e}")
+#         return ""
 def image_to_base64(image_path):
-    """Convert an image to base64 for web display."""
-    web_path = image_path.replace('static/', '').replace('\\', '/')
-    return url_for('static', filename=web_path)
+    """Convert an image to a web-accessible URL"""
+    try:
+        # Standardize path format
+        image_path = image_path.replace('\\', '/')
+        
+        # Get the path relative to static folder
+        if image_path.startswith('static/'):
+            rel_path = image_path[7:]  # Remove 'static/' prefix
+        else:
+            rel_path = image_path
+            
+        # Return proper URL
+        return url_for('static', filename=rel_path)
+    except Exception as e:
+        logger.error(f"Error in image_to_base64: {e}")
+        return ""
+
 
 def detect_face_mtcnn(image):
-    """Detect face using MTCNN and return bounding boos.makedirs(os.path.join('static', 'results'), exist_ok=True)x."""
+    """Detect face using MTCNN and return bounding box."""
     if face_detector is None:
         logger.warning("MTCNN face detector not available")
         return None
@@ -315,7 +416,12 @@ def extract_watermark_plsb(watermarked, body_box):
         return extracted_enhanced
     except Exception as e:
         logger.error(f"Error extracting watermark: {e}")
-        return np.zeros_like(watermarked[by:by+bh, bx:bx+bw])
+        # Create a fallback value in case of error
+        if 'body_roi' in locals():
+            return np.zeros_like(body_roi)
+        else:
+            # Create a black image with the same dimensions as the body region
+            return np.zeros((bh, bw, 3), dtype=np.uint8)
 
 def extract_qr_data(image):
     """Extracts data from QR code."""
@@ -382,6 +488,144 @@ def index():
     """Render the main page."""
     return render_template('index.html')
 
+# Generate hash function for blockchain storage
+def generate_image_hash(image_path):
+    """Generate SHA-256 hash of an image file."""
+    try:
+        sha256_hash = hashlib.sha256()
+        with open(image_path, "rb") as f:
+            # Read and update hash in chunks for large files
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(byte_block)
+        return sha256_hash.hexdigest()
+    except Exception as e:
+        logger.error(f"Error generating image hash: {e}")
+        return None
+
+# @app.route('/process', methods=['POST'])
+# def process_image():
+#     """Process the uploaded image."""
+#     try:
+#         # Check if image file was uploaded
+#         if 'image' not in request.files:
+#             return jsonify({'error': 'No image file provided'}), 400
+        
+#         file = request.files['image']
+        
+#         # Check if the file is empty
+#         if file.filename == '':
+#             return jsonify({'error': 'No image selected'}), 400
+        
+#         # Generate a unique filename to avoid collisions
+#         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+#         filename = f"{timestamp}_{secure_filename(file.filename)}"
+#         # filepath = os.path.normpath(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+#         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+#         # Save the uploaded file
+#         file.save(filepath)
+#         logger.info(f"Image saved to {filepath}")
+        
+#         # Read the image with OpenCV
+#         image = cv2.imread(filepath)
+#         if image is None:
+#             return jsonify({'error': 'Failed to read the uploaded image'}), 400
+        
+#         # Create results dictionary
+#         results = {}
+        
+#         # Save original image for reference
+#         original_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"original_{filename}"))
+#         cv2.imwrite(original_path, image)
+#         results['original_image'] = image_to_base64(original_path)
+        
+#         # Detect face (ROI)
+#         face_box = detect_face_mtcnn(image)
+#         if face_box is None:
+#             return jsonify({'error': 'No face detected in the image'}), 400
+        
+#         x, y, w, h = face_box
+        
+#         # Create face detection visualization
+#         face_detection_img = image.copy()
+#         cv2.rectangle(face_detection_img, (x, y), (x+w, y+h), (0, 255, 0), 2)
+#         face_detection_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"face_detection_{filename}"))
+#         cv2.imwrite(face_detection_path, face_detection_img)
+#         results['face_detection'] = image_to_base64(face_detection_path)
+        
+#         # Extract face ROI
+#         face_roi = image[y:y+h, x:x+w]
+#         face_roi_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"face_roi_{filename}"))
+#         cv2.imwrite(face_roi_path, face_roi)
+#         results['face_roi'] = image_to_base64(face_roi_path)
+        
+#         # Upload face to Cloudinary
+#         try:
+#             response = cloudinary.uploader.upload(face_roi_path)
+#             image_url = response["secure_url"]
+#             logger.info(f"Face uploaded to Cloudinary: {image_url}")
+#             qr_data = image_url
+#         except Exception as e:
+#             logger.error(f"Error uploading to Cloudinary: {e}")
+#             qr_data = f"face_detected_{timestamp}"
+        
+#         # Store QR data
+#         results['qr_data'] = qr_data
+        
+#         # Generate QR code
+#         qr_image = generate_qr(qr_data)
+#         qr_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"qr_{filename}"))
+#         cv2.imwrite(qr_path, qr_image)
+#         results['qr_code'] = image_to_base64(qr_path)
+        
+#         # Detect body for watermarking
+#         body_box = detect_body_hog_mediapipe(image)
+#         bx, by, bw, bh = body_box
+        
+#         # Create body detection visualization
+#         body_detection_img = image.copy()
+#         cv2.rectangle(body_detection_img, (bx, by), (bx+bw, by+bh), (255, 0, 0), 2)
+#         body_detection_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"body_detection_{filename}"))
+#         cv2.imwrite(body_detection_path, body_detection_img)
+#         results['body_detection'] = image_to_base64(body_detection_path)
+        
+#         # Extract body ROI
+#         body_roi = image[by:by+bh, bx:bx+bw]
+#         body_roi_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"body_roi_{filename}"))
+#         cv2.imwrite(body_roi_path, body_roi)
+#         results['body_roi'] = image_to_base64(body_roi_path)
+        
+#         # Embed watermark
+#         watermarked, diff = embed_watermark_plsb(image, qr_image, body_box)
+#         watermarked_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"watermarked_{filename}"))
+#         cv2.imwrite(watermarked_path, watermarked)
+#         results['watermarked_image'] = image_to_base64(watermarked_path)
+        
+#         # Generate image hash for blockchain storage
+#         image_hash = generate_image_hash(watermarked_path)
+#         results['image_hash'] = image_hash
+#         logger.info(f"Generated hash for blockchain storage: {image_hash}")
+        
+#         # Extract watermark
+#         extracted_watermark = extract_watermark_plsb(watermarked, body_box)
+#         extracted_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"extracted_{filename}"))
+#         cv2.imwrite(extracted_path, extracted_watermark)
+#         results['extracted_watermark'] = image_to_base64(extracted_path)
+        
+#         # Create process visualization
+#         process_vis = visualize_watermarking_process(
+#             image, qr_image, watermarked, extracted_watermark, body_box
+#         )
+#         process_vis_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"process_{filename}"))
+#         cv2.imwrite(process_vis_path, process_vis)
+#         results['watermark_process'] = image_to_base64(process_vis_path)
+        
+#         return jsonify(results)
+    
+#     except Exception as e:
+#         logger.error(f"Error processing image: {e}")
+#         return jsonify({'error': f'Error processing image: {str(e)}'}), 500
+# Modified process_image route to ensure paths are handled consistently
 @app.route('/process', methods=['POST'])
 def process_image():
     """Process the uploaded image."""
@@ -399,8 +643,7 @@ def process_image():
         # Generate a unique filename to avoid collisions
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{timestamp}_{secure_filename(file.filename)}"
-        # filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        filepath = os.path.normpath(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename).replace('\\', '/')
         
         # Save the uploaded file
         file.save(filepath)
@@ -415,10 +658,11 @@ def process_image():
         results = {}
         
         # Save original image for reference
-        original_path = os.path.join(app.config['RESULT_FOLDER'], f"original_{filename}")
+        original_path = os.path.join(app.config['RESULT_FOLDER'], f"original_{filename}").replace('\\', '/')
         cv2.imwrite(original_path, image)
         results['original_image'] = image_to_base64(original_path)
         
+        # Rest of your processing code...
         # Detect face (ROI)
         face_box = detect_face_mtcnn(image)
         if face_box is None:
@@ -429,13 +673,13 @@ def process_image():
         # Create face detection visualization
         face_detection_img = image.copy()
         cv2.rectangle(face_detection_img, (x, y), (x+w, y+h), (0, 255, 0), 2)
-        face_detection_path = os.path.join(app.config['RESULT_FOLDER'], f"face_detection_{filename}")
+        face_detection_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"face_detection_{filename}"))
         cv2.imwrite(face_detection_path, face_detection_img)
         results['face_detection'] = image_to_base64(face_detection_path)
         
         # Extract face ROI
         face_roi = image[y:y+h, x:x+w]
-        face_roi_path = os.path.join(app.config['RESULT_FOLDER'], f"face_roi_{filename}")
+        face_roi_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"face_roi_{filename}"))
         cv2.imwrite(face_roi_path, face_roi)
         results['face_roi'] = image_to_base64(face_roi_path)
         
@@ -454,7 +698,7 @@ def process_image():
         
         # Generate QR code
         qr_image = generate_qr(qr_data)
-        qr_path = os.path.join(app.config['RESULT_FOLDER'], f"qr_{filename}")
+        qr_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"qr_{filename}"))
         cv2.imwrite(qr_path, qr_image)
         results['qr_code'] = image_to_base64(qr_path)
         
@@ -465,25 +709,30 @@ def process_image():
         # Create body detection visualization
         body_detection_img = image.copy()
         cv2.rectangle(body_detection_img, (bx, by), (bx+bw, by+bh), (255, 0, 0), 2)
-        body_detection_path = os.path.join(app.config['RESULT_FOLDER'], f"body_detection_{filename}")
+        body_detection_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"body_detection_{filename}"))
         cv2.imwrite(body_detection_path, body_detection_img)
         results['body_detection'] = image_to_base64(body_detection_path)
         
         # Extract body ROI
         body_roi = image[by:by+bh, bx:bx+bw]
-        body_roi_path = os.path.join(app.config['RESULT_FOLDER'], f"body_roi_{filename}")
+        body_roi_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"body_roi_{filename}"))
         cv2.imwrite(body_roi_path, body_roi)
         results['body_roi'] = image_to_base64(body_roi_path)
         
         # Embed watermark
         watermarked, diff = embed_watermark_plsb(image, qr_image, body_box)
-        watermarked_path = os.path.join(app.config['RESULT_FOLDER'], f"watermarked_{filename}")
+        watermarked_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"watermarked_{filename}"))
         cv2.imwrite(watermarked_path, watermarked)
         results['watermarked_image'] = image_to_base64(watermarked_path)
         
+        # Generate image hash for blockchain storage
+        image_hash = generate_image_hash(watermarked_path)
+        results['image_hash'] = image_hash
+        logger.info(f"Generated hash for blockchain storage: {image_hash}")
+        
         # Extract watermark
         extracted_watermark = extract_watermark_plsb(watermarked, body_box)
-        extracted_path = os.path.join(app.config['RESULT_FOLDER'], f"extracted_{filename}")
+        extracted_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"extracted_{filename}"))
         cv2.imwrite(extracted_path, extracted_watermark)
         results['extracted_watermark'] = image_to_base64(extracted_path)
         
@@ -491,15 +740,27 @@ def process_image():
         process_vis = visualize_watermarking_process(
             image, qr_image, watermarked, extracted_watermark, body_box
         )
-        process_vis_path = os.path.join(app.config['RESULT_FOLDER'], f"process_{filename}")
+        process_vis_path = os.path.normpath(os.path.join(app.config['RESULT_FOLDER'], f"process_{filename}"))
         cv2.imwrite(process_vis_path, process_vis)
         results['watermark_process'] = image_to_base64(process_vis_path)
+        # Make sure all paths are handled consistently using .replace('\\', '/')
         
+        # Create consistent response
         return jsonify(results)
     
     except Exception as e:
         logger.error(f"Error processing image: {e}")
         return jsonify({'error': f'Error processing image: {str(e)}'}), 500
+    
+# Helper function to get absolute URL for a file path
+def get_absolute_url(app, file_path):
+    path = file_path.replace('static/', '')
+    url = url_for('static', filename=path)
+    return urljoin(request.url_root, url)
 
 if __name__ == '__main__':
+    # Make sure your folders exist
+    for folder in [app.config['UPLOAD_FOLDER'], app.config['RESULT_FOLDER']]:
+        os.makedirs(folder, exist_ok=True)
+        
     app.run(debug=True)

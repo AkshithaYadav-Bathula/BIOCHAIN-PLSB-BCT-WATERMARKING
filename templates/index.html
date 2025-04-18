@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Watermarking System</title>
+    <title>Blockchain-Enabled Privacy Preservation of Watermarked Facial Images</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-shield-alt"></i> Image Watermarking System</h1>
+            <h1><i class="fas fa-shield-alt"></i> Blockchain-Enabled Privacy Preservation of Watermarked Facial Images</h1>
             <p>Upload an image to detect faces/bodies and embed QR code watermarks</p>
         </header>
 
@@ -38,8 +38,8 @@
             <div class="tabs">
                 <button class="tab-btn active" data-tab="original">Original</button>
                 <button class="tab-btn" data-tab="segment">Segmentation</button>
-                <button class="tab-btn" data-tab="qr">QR Code</button>
-                <button class="tab-btn" data-tab="watermark">Watermarking</button>
+                <button class="tab-btn" data-tab="qr">QRCode Generation (Watermark)</button>
+                <button class="tab-btn" data-tab="watermark">PLSB Based Watermarking</button>
             </div>
 
             <div id="original" class="tab-content active">
@@ -57,7 +57,7 @@
                         <img id="face-roi" src="" alt="Face ROI">
                     </div>
                     <div class="image-card">
-                        <h3>Body ROI</h3>
+                        <h3>Body NROI</h3>
                         <img id="body-roi" src="" alt="Body ROI">
                     </div>
                 </div>
@@ -77,26 +77,47 @@
                 <h2>Watermarking Process</h2>
                 <div class="image-grid">
                     <div class="image-card">
-                        <h3>Watermarked Image</h3>
+                        <h3>Embedding (Watermarked Image)</h3>
                         <img id="watermarked-image" src="" alt="Watermarked Image">
                         <a id="download-watermarked" class="download-btn" download>
                             <i class="fas fa-download"></i> Download
                         </a>
                     </div>
                     <div class="image-card">
-                        <h3>Extracted Watermark</h3>
+                        <h3>Extraction (Extracted Watermark)</h3>
                         <img id="extracted-watermark" src="" alt="Extracted Watermark">
                     </div>
                 </div>
             </div>
 
         </div>
+        <!-- Add this inside the watermark tab-content div, after the existing image cards -->
+<div class="image-card full-width">
+    <h3>Blockchain Integration</h3>
+    <div class="blockchain-controls">
+        <button id="connect-wallet" class="bct-button">
+            <i class="fas fa-wallet"></i> Connect MetaMask
+        </button>
+        <button id="store-hash" class="bct-button" disabled>
+            <i class="fas fa-link"></i> Store Hash on Blockchain
+        </button>
+    </div>
+    <div class="blockchain-status">
+        <p><strong>Wallet Status:</strong> <span id="wallet-status">Not connected</span></p>
+        <p><strong>Image Hash:</strong> <span id="image-hash">Not generated</span></p>
+        <p><strong>Transaction Status:</strong> <span id="tx-status">No transaction</span></p>
+        <p><strong>Transaction Hash:</strong> <a id="tx-hash" href="#" target="_blank">None</a></p>
+    </div>
+</div>
     </div>
 
     <footer>
         <p>&copy; 2025 Image Watermarking System</p>
     </footer>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-sha256@0.9.0/src/sha256.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
