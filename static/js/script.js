@@ -400,7 +400,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let accounts = [];
     let imageHashStorageContract;
     let currentImageHash = null;
-
+    // const staticTxHash = "0x4aa59a84e54441dcaeec4e766b1a76b8ffd7e38c0260b3d64639e23087b356e5";
+    // Display static transaction hash
+    // const staticTxHash = "0x4aa59a84e54441dcaeec4e766b1a76b8ffd7e38c0260b3d64639e23087b356e5";
+    // document.getElementById('static-tx-hash').textContent = staticTxHash;
     // Contract ABI (generated from your Solidity contract)
     const contractABI = [
         {
@@ -725,7 +728,35 @@ document.addEventListener('DOMContentLoaded', function() {
             return null;
         }
     }
-
+// Store image hash on blockchain
+// async function storeImageHash() {
+//     if (!currentImageHash || accounts.length === 0) return;
+    
+//     try {
+//         document.getElementById('tx-status').textContent = 'Pending...';
+//         document.getElementById('store-hash').disabled = true;
+        
+//         // Call the smart contract function
+//         const result = await imageHashStorageContract.methods.storeImageHash(currentImageHash)
+//             .send({ from: accounts[0] });
+        
+//         // Update UI with static transaction info
+//         document.getElementById('tx-status').textContent = 'Confirmed';
+        
+//         // Replace dynamic transaction hash with static hash
+//         const staticTxHash = "0x4aa59a84e54441dcaeec4e766b1a76b8ffd7e38c0260b3d64639e23087b356e5";
+//         document.getElementById('tx-hash').textContent = staticTxHash;
+//         // document.getElementById('tx-hash').href = `https://sepolia.etherscan.io/tx/${staticTxHash}`; // Update the link if needed
+//         document.getElementById('tx-hash').href = `https://etherscan.io/tx/${staticTxHash}`; // Update the link if needed
+//         document.getElementById('store-hash').disabled = false;
+        
+//         console.log('Transaction successful:', result);
+//     } catch (error) {
+//         console.error('Error storing hash on blockchain:', error);
+//         document.getElementById('tx-status').textContent = 'Failed';
+//         document.getElementById('store-hash').disabled = false;
+//     }
+// }
     // Store image hash on blockchain
     async function storeImageHash() {
         if (!currentImageHash || accounts.length === 0) return;
@@ -741,7 +772,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update UI with transaction info
             document.getElementById('tx-status').textContent = 'Confirmed';
             document.getElementById('tx-hash').textContent = result.transactionHash;
-            document.getElementById('tx-hash').href = `https://sepolia.etherscan.io/tx/${result.transactionHash}`;
+            // document.getElementById('tx-hash').href = `https://sepolia.etherscan.io/tx/${result.transactionHash}`;
+            document.getElementById('tx-hash').href = `https://eth-sepolia.blockscout.com/tx/${result.transactionHash}`;
 
             // document.getElementById('tx-hash').href = `https://etherscan.io/tx/${result.transactionHash}`;
             document.getElementById('store-hash').disabled = false;
@@ -754,3 +786,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+
