@@ -76,3 +76,56 @@ This project uses an Ethereum smart contract (`ImageHashStorage.sol`) to securel
 python app.py
 ```
 
+---
+
+## 🔄 Full Workflow – With Screenshots
+
+### 1. Upload Image
+- Initial UI for uploading input image
+![Upload Image](screenshots/upload_image.png)
+
+### 2. Face and Body Detection
+- MTCNN detects and extracts facial regions (RoI)
+![Detection](screenshots/face_body_detection.png)
+
+### 3. QR Code Generation
+- A QR code is created from the Cloudinary-hosted facial image URL
+![QR Generation](screenshots/qr_generation.png)
+
+### 4. PLSB Watermarking
+- QR is embedded into the body region (non-facial) using Penultimate LSB
+![Watermarking](screenshots/plsb_watermarking.png)
+
+### 5. SHA-256 Hash Generation
+- Final watermarked image is hashed securely
+![Hash Generation](screenshots/hash_generation.png)
+
+### 6. MetaMask Transaction Popup
+- User is prompted to sign a transaction storing hash on Ethereum
+![MetaMask Integration](screenshots/metamask_integration.png)
+
+### 7. Store Hash Using Smart Contract
+- The `storeHash()` function of the smart contract is triggered
+![Store Hash](screenshots/store_hash_BCT.png)
+
+### 8. Transaction Confirmation on Blockchain
+- User sees confirmation of the successful transaction
+![Transaction Confirmed](screenshots/transaction_confirmed.png)
+
+### 9. Before Transaction (ETH Balance)
+- MetaMask account balance before transaction for reference
+![ETH Before Transaction](screenshots/eth_before_transaction.png)
+
+### 10. Final Output Image (Watermarked)
+- The final visual output containing watermarked QR
+![Output Image](screenshots/1.png)
+
+### 11. Blockscout Transaction View
+- QR data integrity validated via hash retrieval from blockchain
+![Blockscout View](screenshots/s4.png)
+
+---
+
+> 📁 **Note**: All images are stored in the `/screenshots` directory. Make sure it's included and pushed in your GitHub repo.
+
+
