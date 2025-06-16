@@ -17,6 +17,15 @@ In sectors like healthcare and digital identity, facial images are vulnerable to
 
 ---
 
+## 🔧 Tech Stack
+
+- `Python`, `OpenCV`, `qrcode`, `MTCNN`
+- `Cloudinary` for cloud storage
+- `Solidity`, `Remix IDE`, `MetaMask`, `Ethereum`, `Blockscout`
+- `Git`, `GitHub`, `Markdown`
+
+---
+
 ## 🚀 Getting Started
 
 ### 🔁 Clone the Repository
@@ -112,15 +121,7 @@ python app.py
 - User sees confirmation of the successful transaction
 ![Transaction Confirmed](screenshots/transaction_confirmed.png)
 
-### 9. Before Transaction (ETH Balance)
-- MetaMask account balance before transaction for reference
-![ETH Before Transaction](screenshots/eth_before_transaction.png)
-
-### 10. Final Output Image (Watermarked)
-- The final visual output containing watermarked QR
-![Output Image](screenshots/1.png)
-
-### 11. Blockscout Transaction View
+### 9. Blockscout Transaction View
 - QR data integrity validated via hash retrieval from blockchain
 ![Blockscout View](screenshots/s4.png)
 
