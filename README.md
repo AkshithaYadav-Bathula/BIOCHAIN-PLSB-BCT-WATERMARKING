@@ -1,6 +1,6 @@
 # BioChain – Blockchain Enabled Privacy Preservation of Watermarked Facial Images
 
-BioChain is a privacy-preserving digital image security system that combines deep learning-based facial detection with a watermarking mechanism and blockchain authentication. It uses MTCNN for detecting facial regions, embeds a QR code securely in the non-facial area using Penultimate Least Significant Bit (PLSB) watermarking, and integrates blockchain to ensure integrity and transparency via Ethereum smart contracts.
+**BioChain** is a privacy-preserving image security framework focused on protecting **biometric data**, specifically **facial images**. It integrates deep learning-based face detection, watermarking, and blockchain authentication. The system uses **MTCNN** to detect facial regions, generates a **QR code** from the facial data URL, embeds it in the non-facial region using **Penultimate Least Significant Bit (PLSB)** watermarking, and secures image integrity by storing its **SHA-256 hash on the Ethereum blockchain** via smart contracts.\
 
 ---
 
