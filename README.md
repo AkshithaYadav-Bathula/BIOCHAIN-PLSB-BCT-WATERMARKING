@@ -127,6 +127,6 @@ python app.py
 
 ---
 
-> 📁 **Note**: All images are stored in the `/screenshots` directory. Make sure it's included and pushed in your GitHub repo.
+> 📁 **Note**: All images are stored in the `/screenshots` directory. 
 
 
